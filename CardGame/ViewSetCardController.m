@@ -87,12 +87,31 @@
     
 }
 -(NSAttributedString *)createAttributedStringFromCard:(SetCard *)card{
-    UIColor *color = [UIColor colorWithRed:[card.color[0] floatValue] green:[card.color[1] floatValue] blue:[card.color[2] floatValue] alpha:[card.shading floatValue]];
+    UIColor *color = [UIColor colorWithRed:[card.color[0] floatValue] green:[card.color[1] floatValue] blue:[card.color[2] floatValue] alpha:1];
+    NSString *symbol = @"";
+    //NSMutableDictionary *attributes = [NSDictionary dictionaryWithObject:color forKey:NSStrokeColorAttributeName];
+    NSMutableDictionary *attributes = [[NSMutableDictionary alloc]init];
     
-    NSMutableDictionary * attributes = [NSDictionary dictionaryWithObject:color forKey:NSForegroundColorAttributeName];
-    //[attributes setObject:color forKey:NSForegroundColorAttributeName];
+    if([card.shading isEqual:[SetCard validShadings][0] ]){
+        [attributes setObject:color forKey:NSStrokeColorAttributeName];
+        [attributes setObject:@-5 forKey:NSStrokeWidthAttributeName];
+        [attributes setObject:[[UIColor grayColor] colorWithAlphaComponent:0.2] forKey:NSForegroundColorAttributeName];
+    }
+    if([card.shading isEqual:[SetCard validShadings][1]]){
+        [attributes setObject:color forKey:NSForegroundColorAttributeName];
+    }
+    if([card.shading isEqual:[SetCard validShadings][2]]){
+        [attributes setObject:color forKey:NSStrokeColorAttributeName];
+        [attributes setObject:@-5 forKey:NSStrokeWidthAttributeName];
+        [attributes setObject:[UIColor whiteColor] forKey:NSForegroundColorAttributeName];
+    }
     
-    NSMutableAttributedString *attString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@%@", card.number, card.symbol] attributes:attributes];
+    for (int i = 0; i < [card.number intValue]; i++) {
+        symbol = [NSString stringWithFormat:@"%@%@", symbol,card.symbol];
+    }
+    
+    NSMutableAttributedString *attString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", symbol] attributes:attributes];
+  
     if(card.faceUp){
         [self.status addObject:attString];
     }
