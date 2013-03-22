@@ -11,8 +11,8 @@
 @implementation PlayingCard
 
 //Method to match cards and give points to the player
-//Takes all the other cards and compare them with the first card choosen. 
--(int)match:(NSArray *)otherCards with:(NSUInteger)gameMode
+//Takes all the other cards and compare them with the first card choosen.
+-(int)match:(NSArray *)otherCards
 {
     int score = 0;
     int cardSuitCounter = 1;
@@ -30,8 +30,9 @@
             cardRankCounter++;
         }
     }
-    //Checks if all the cards are equals 
-    if(gameMode == cardRankCounter || gameMode == cardSuitCounter){
+    int cardCount = [otherCards count] + 1;
+    //Checks if all the cards are equals
+    if(cardCount == cardRankCounter || cardCount == cardSuitCounter){
         return score;
     }
     return 0;
@@ -61,9 +62,11 @@
     return _suit ? _suit : @"?";
 }
 
+//the char a rank can be.
 +(NSArray *)rankStrings{
     return @[@"?",@"A",@"2",@"3",@"4",@"5",@"6",@"7",@"8",@"9",@"10",@"J",@"Q",@"K"];
 }
+//the highest rank that a card can have.
 + (NSUInteger)maxRank {
     return [PlayingCard rankStrings].count-1;
 }
