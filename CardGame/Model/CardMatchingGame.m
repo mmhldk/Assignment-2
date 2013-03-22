@@ -1,107 +1,151 @@
 //
-//  ViewController.m
+//  CardMatchingGame.m
 //  CardGame
 //
-//  Created by Martin on 19/02/13.
+//  Created by Martin on 20/02/13.
 //  Copyright (c) 2013 Martin. All rights reserved.
 //
 
-#import "ViewController.h"
-#import "PlayingCard.h"
-#import "PlayingCardDeck.h"
 #import "CardMatchingGame.h"
+#import "PlayingCardDeck.h"
 
-
-@interface ViewController ()
-@property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
-@property (weak, nonatomic) IBOutlet UILabel *flipLabel;
-@property (nonatomic) NSUInteger flipCount;
-@property (strong,nonatomic) CardMatchingGame *game;
-@property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
-@property (weak, nonatomic) IBOutlet UILabel *statusLabel;
-@property (weak, nonatomic) IBOutlet UISegmentedControl *gameModeSelector;
-@property (strong,nonatomic)PlayingCardDeck *deck;
-
-
+@interface CardMatchingGame()
+@property(readwrite, nonatomic)int score;
+@property(nonatomic)NSUInteger numberOfCards;
+@property(strong,nonatomic)NSMutableArray *cards; //of Card
+@property(strong,nonatomic)Deck *deck;
 @end
+@implementation CardMatchingGame
 
-@implementation ViewController
 
--(PlayingCardDeck*)deck
+-(NSMutableArray *)cards
 {
-    if(!_deck){
-        _deck = [[PlayingCardDeck alloc] init];
+    if(!_cards){
+        _cards = [[NSMutableArray alloc]init];
     }
-    return _deck;
+    return _cards;
 }
--(CardMatchingGame *)game
+
+-(NSMutableArray *)selectedCards
 {
-    if (!_game) {
-        _game = [[CardMatchingGame alloc]initWithCardCount:[self.cardButtons count] usingDeck:self.deck];
+    if(!_selectedCards){
+        _selectedCards = [[NSMutableArray alloc]init];
     }
-    return _game;
+    return _selectedCards;
 }
 
--(void)setCardButtons:(NSArray *)cardButtons{
-    _cardButtons = cardButtons;
-    [self updateUI];
-}
-- (IBAction)changeGameMode:(UISegmentedControl *)sender {
-    self.game.numbercOfCardMatchMode = sender.selectedSegmentIndex + 2;
-    
+-(NSUInteger)numbercOfCardMatchMode{
+    if (_numbercOfCardMatchMode == 0) {
+        _numbercOfCardMatchMode = 3;
+    }
+    return _numbercOfCardMatchMode;
 }
 
+-(void)flipCardAtIndex:(NSUInteger)index{
+    if (!self.isStarted) {
+        //set the game is stated
+        self.started = !self.isStarted;
+    }
+    Card *card = [self cardAtIndex:index];
+    [self.selectedCards removeAllObjects];
 
--(void)updateUI{
-    //Updating all the buttons in the view one by one.
-    for (UIButton *cardButton in self.cardButtons) {
-        //Retreiving the card from thh button
-        Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:cardButton]];
-        //Setting the content the card will show when the button are seleted.
-        [cardButton setTitle:card.contents forState:UIControlStateSelected];
-        //Setting the content the card will show when the card is matched with an other card.
-        [cardButton setTitle:card.contents forState:UIControlStateSelected|
-         UIControlStateDisabled];
-        //Setting the back and front of the button card.
-        [cardButton setBackgroundImage:[UIImage imageNamed:self.deck.cardBacksideBackgroundImage] forState:UIControlStateNormal];
-        [cardButton setBackgroundImage:[UIImage imageNamed:self.deck.cardFrontsideBackgroundImage] forState:UIControlStateSelected];
+    if(card && !card.isUnplayable){
+        //init the array for the cards to compare 
+        NSMutableArray *scoreCoutingCards = [[NSMutableArray alloc] initWithObjects:nil];
         
-        //Set which side of the card is upward.
-        cardButton.selected = card.isFaceUp;
-        //Set if the card is out of the game
-        cardButton.enabled = !card.isUnplayable;
-        cardButton.alpha = (card.isUnplayable ? 0.3 : 1);
+        if(!card.isFaceUp){
+            //Set the status to which card that are flipped.
+            self.status = [NSString stringWithFormat:@"flipped"];
+            //adding the newest selected card to the seletedCard array
+            [self.selectedCards addObject:card];
+            
+            //Looking at all the card in the game and adds the one with the face up to the scoreCoutingCards array
+            for(Card *otherCard in self.cards){
+                if(otherCard.isFaceUp && !otherCard.isUnplayable){
+                    [scoreCoutingCards addObject:otherCard];
+                }
+            }
+            
+            //if the number of the cards with their face up match the number Of Card that has to accour to make Match
+            //then we are mathing them
+            if([scoreCoutingCards count] == self.numbercOfCardMatchMode-1){
+                int matchScore = [card match:scoreCoutingCards];
+                if(matchScore){
+                    //If there are a match the cards are made unplable and the score rewarded are added to the game score
+                    //and the status is set with which card are matched.
+                    for (Card *scoreCard in scoreCoutingCards) {
+                        [self.selectedCards addObject:scoreCard];
+                        scoreCard.unplayable = YES;
+                    }
+                    card.unplayable = YES;
+                    self.score += matchScore * 4;
+                    self.status = [NSString stringWithFormat:@"mached"];
+                }else{
+                    //If there aren't a match the penalty are added to the game score
+                    //and the status is set with which card that didn't match.
+                    for (Card *scoreCard in scoreCoutingCards) {
+                        [self.selectedCards addObject:scoreCard];
+                        scoreCard.faceUp = NO;
+                    }
+                    self.score -= 2;
+                    self.status = [NSString stringWithFormat:@"don't match"];
+                }
+            }
+            //The current card are set to the oppersit as it is in the current state.
+            card.faceUp = !card.isFaceUp;
+            //The card flip penalty are added to the game score
+            self.score -= 1;
+        }else{
+            //All the cards are turn with face down.
+            for(Card *otherCard in self.cards){
+                if(otherCard.isFaceUp && !otherCard.isUnplayable){
+                    otherCard.faceUp = NO;
+                }
+            }
+        }
     }
-    
-    //Set the the shift button to enable or diable accourting to the game is started or not.
-    self.gameModeSelector.enabled = !self.game.isStarted;
-    //Setting the scoring and status label.
-    self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
-    self.statusLabel.text = self.game.status;
-    
-}
-- (IBAction)dealNew:(UIButton *)sender {
-    //When pressing the button the game is reset and the view are updated.
-    [self.game reset];
-    [self updateUI];
 }
 
--(void)setFlipCount:(NSUInteger)flipCount{
-    //Setting the flipcounter and updating the flipCounter label in the view
-    _flipCount = flipCount;
-    self.flipLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
-    
-    
+-(Card *)cardAtIndex:(NSUInteger)index{
+    //Finds which card that correspond an index.
+    return (index < [self.cards count]) ? self.cards[index] : nil;
 }
-- (IBAction)flipCard:(UIButton *)sender {
-    //Flipping a card
-    //setting the flipcount + 1
-    self.flipCount++;
-    //Sending the card from the button to the model for playing the game.
-    [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
-    //redrawing the view.
-    [self updateUI];
+
+-(void)reset{
+    //resetting all the settings in the game.
+    //and deals new cards
+    [self.selectedCards removeAllObjects];
+    self.started = !self.isStarted;
+    self.status = @"New game";
+    self.score = 0;
+    [self dealCard];
     
 }
 
+-(void)dealCard{
+    //Dealing card.
+    //Creating a playingcard deck and selects a certain amount
+    //of random cards and add them to the game
+
+    for (int i = 0; i < self.numberOfCards; i++){
+        Card *card = [self.deck drawRandomCard];
+        if(card) {
+            self.cards[i] = card;
+        }else{
+            break;
+        }
+    }
+}
+-(id)initWithCardCount:(NSUInteger)count usingDeck:(Deck *)deck NumberOfCardsToCompare: (NSUInteger)number{
+    //inits the game by dealing cards.
+    self.numbercOfCardMatchMode = number;
+    self = [super init];
+    self.numberOfCards = count;
+    self.deck = deck;
+    
+    if(self){
+        [self dealCard];
+    }
+    return self;
+}
 @end

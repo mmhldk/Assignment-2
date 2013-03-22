@@ -14,7 +14,7 @@
 
 // designated initializer
 -(id)initWithCardCount:(NSUInteger)count
-             usingDeck:(Deck *)deck;
+             usingDeck:(Deck *)deck NumberOfCardsToCompare: (NSUInteger)number;
 
 -(void)flipCardAtIndex:(NSUInteger)index;
 -(Card *)cardAtIndex:(NSUInteger)index;

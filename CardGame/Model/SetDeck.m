@@ -21,6 +21,7 @@
 }
 
 -(void)redeal{
+    //Creating a playingcard deck with all the shading, symbols, color and number
     //runs through all the shading
     for (NSString *shading in [SetCard validShadings]) {
         //runs through all the symbol
@@ -29,7 +30,7 @@
             for (NSArray *color in [SetCard validColors]) {
                 //runs through all the number
                 for (NSNumber *number in [SetCard validNumbers]) {
-                    //Creating a card and sets it's number, color, symbol and shading.
+                    //Creating a card and sets it's shading, symbols, color and number
                     SetCard *card = [[SetCard alloc]init];
                     card.number = number;
                     card.color = color;

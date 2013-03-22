@@ -8,7 +8,6 @@
 
 #import "Card.h"
 
-
 @implementation Card
 
 -(int)match:(NSArray *)otherCards{
@@ -23,4 +22,3 @@
 }
 
 @end
-

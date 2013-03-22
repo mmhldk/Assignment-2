@@ -11,15 +11,15 @@
 
 @interface SetCard : Card
 
-@property (nonatomic)NSNumber *number;
-@property (nonatomic)NSString *shading;
-@property (strong, nonatomic)NSString *symbol;
-@property (strong, nonatomic)NSArray *color;
+@property (nonatomic)NSNumber *number; // the number the card have
+@property (nonatomic)NSString *shading; // the shading the card have
+@property (strong, nonatomic)NSString *symbol; // the symbol the card have
+@property (strong, nonatomic)NSArray *color; // the color the card have
 
-+(NSArray*)validNumbers;
-+(NSArray*)validShadings;
-+(NSArray*)validSymbols;
-+(NSArray*)validColors;
++(NSArray*)validNumbers; //all the numbers that can accur on a card
++(NSArray*)validShadings; //all the shadings that can accur on a card
++(NSArray*)validSymbols; //all the symbols that can accur on a card
++(NSArray*)validColors; //all the scolors that can accur on a card
 
 @end
 
